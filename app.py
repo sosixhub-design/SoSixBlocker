@@ -3,7 +3,7 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-# THE SCRIPT (Your protected code)
+# YOUR PRIVATE SCRIPT
 MY_LUASCRIPT = r"""
 --[[
               SOSIX HUB
@@ -374,22 +374,21 @@ ToggleBtn.MouseButton1Click:Connect(function()
 end)
 """
 
+@app.route('/health')
 @app.route('/')
-def home():
-    # Render needs to see a 200 OK here to confirm the port is open
+def health():
+    # Render's scanner looks for a 200 OK at these paths
     return "OK", 200
 
 @app.route('/Blocker')
 def load():
     ua = request.headers.get('User-Agent', '').lower()
-    # If it's a browser, send a fake error
+    # Block Browsers
     if any(x in ua for x in ['mozilla', 'chrome', 'safari', 'edge']):
-        return "Error 404: Not Found", 404
-    
-    # If it's the executor, send the goods
+        return "Unauthorized", 403
     return MY_LUASCRIPT
 
 if __name__ == '__main__':
-    # We use 10000 because that is Render's favorite default port
+    # MANDATORY: host must be 0.0.0.0 and port must match Render
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
