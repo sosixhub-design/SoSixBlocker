@@ -1,10 +1,10 @@
-from flask import Flask, os
+import os
+from flask import Flask
 
 app = Flask(__name__)
 
 # =========================================================
-# [[ 1. PASTE YOUR SCRIPT BELOW ]]
-# Put your code between the triple quotes r""" ... """
+# [[ 1. THE SOSIX SCRIPT ]]
 # =========================================================
 MY_LUASCRIPT = r"""
 --[[
@@ -375,7 +375,6 @@ ToggleBtn.MouseButton1Click:Connect(function()
     animating = false
 end)
 """
-# =========================================================
 
 @app.route('/')
 def home():
@@ -383,10 +382,8 @@ def home():
 
 @app.route('/Blocker', methods=['GET'])
 def load():
-    # This serves the raw string directly to your game
     return MY_LUASCRIPT, 200, {'Content-Type': 'text/plain'}
 
 if __name__ == '__main__':
-    # Binds to Render's port
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
