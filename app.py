@@ -1,11 +1,13 @@
 import os
-from flask import Flask, request
+from flask import Flask, request, abort
 
 app = Flask(__name__)
 
-# [[ YOUR PRIVATE SOSIX SCRIPT ]]
+# =========================================================
+# [[ THE SOSIX SCRIPT ]]
+# =========================================================
+# Put your full Lua script inside the triple quotes below.
 MY_LUASCRIPT = r"""
-print("SoSix Hub: Secure")
 --[[
               SOSIX HUB
           The Forge: World II
@@ -376,24 +378,27 @@ end)
 """
 
 @app.route('/')
-def health():
-    return "Status: Operational", 200
+def health_check():
+    # This is a simple endpoint for Render to verify the app is alive
+    return "Sonix Security: Online", 200
 
 @app.route('/Blocker', methods=['GET'])
-def load():
-    # Check the 'User-Agent'
-    ua = request.headers.get('User-Agent', '').lower()
+def load_script():
+    # Identify who is visiting the link
+    user_agent = request.headers.get('User-Agent', '').lower()
     
-    # If the request comes from a Browser (Chrome, Safari, etc.)
+    # List of common browser identifiers to block
     browsers = ['mozilla', 'chrome', 'safari', 'edge', 'opera', 'mobile']
     
-    if any(b in ua for b in browsers):
-        # This makes it look like the page doesn't exist to a normal person
-        return "404 Not Found: The requested URL was not found on the server.", 404
+    # If a person is using a browser, block them so they can't see/steal your code
+    if any(b in user_agent for b in browsers):
+        return "Unauthorized: Source access restricted to authorized executors.", 403
 
-    # If it's NOT a browser (like a Roblox Executor), send the script
+    # If it's an executor (like Solara, Wave, etc.), send the script
     return MY_LUASCRIPT, 200, {'Content-Type': 'text/plain'}
 
+# This block is kept for local testing, but Render will ignore it 
+# once you use the Gunicorn start command.
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
