@@ -1,10 +1,10 @@
 import os
-from flask import Flask, request
+from flask import Flask, request, abort
 
 app = Flask(__name__)
 
 # =========================================================
-# [[ 1. THE SOSIX SCRIPT ]]
+# [[ THE SOSIX SCRIPT ]]
 # =========================================================
 MY_LUASCRIPT = r"""
 --[[
@@ -377,23 +377,22 @@ end)"""
 
 @app.route('/')
 def home():
-    return "<h1>Access Denied</h1><p>Sonix Security Layer Active.</p>", 403
+    return "Sonix Security: Online", 200
 
 @app.route('/Blocker', methods=['GET'])
 def load():
-    # Get the User-Agent (identifies who is visiting the link)
-    user_agent = request.headers.get('User-Agent', '').lower()
-    
-    # List of common web browsers to block
-    browsers = ['mozilla', 'chrome', 'safari', 'edge', 'opera']
-    
-    # If a browser is visiting, show a fake "Blocked" or "Empty" page
-    if any(browser in user_agent for browser in browsers):
-        return "ERROR: Unauthorized Source Code Access. IP Logged.", 403
+    # Detect if the request is coming from a web browser
+    ua = request.headers.get('User-Agent', '').lower()
+    is_browser = any(x in ua for x in ['mozilla', 'chrome', 'safari', 'edge', 'opera'])
 
-    # If it's NOT a browser (meaning it's likely an executor), send the script
+    # If it is a browser, block them so they can't steal the script
+    if is_browser:
+        return "Unauthorized: Source access is restricted to authorized executors.", 403
+
+    # If it's the Roblox executor, send the script
     return MY_LUASCRIPT, 200, {'Content-Type': 'text/plain'}
 
 if __name__ == '__main__':
+    # This is only used for local testing; Render uses the Start Command
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
