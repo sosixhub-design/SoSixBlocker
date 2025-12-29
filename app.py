@@ -1,12 +1,11 @@
 import os
-from flask import Flask, request, abort
+from flask import Flask, request
 
 app = Flask(__name__)
 
-# =========================================================
-# [[ THE SOSIX SCRIPT ]]
-# =========================================================
+# [[ YOUR PRIVATE SOSIX SCRIPT ]]
 MY_LUASCRIPT = r"""
+print("SoSix Hub: Private Script Loaded Successfully!")
 --[[
               SOSIX HUB
           The Forge: World II
@@ -373,26 +372,25 @@ ToggleBtn.MouseButton1Click:Connect(function()
         task.wait(0.3); ToggleBtn.Text = "SOSIX"
     end
     animating = false
-end)"""
+end)
+"""
 
 @app.route('/')
 def home():
-    return "Sonix Security: Online", 200
+    return "Sonix Status: Online", 200
 
 @app.route('/Blocker', methods=['GET'])
 def load():
-    # Detect if the request is coming from a web browser
+    # Only block if it's clearly a common web browser
     ua = request.headers.get('User-Agent', '').lower()
-    is_browser = any(x in ua for x in ['mozilla', 'chrome', 'safari', 'edge', 'opera'])
+    browsers = ['mozilla', 'chrome', 'safari', 'edge', 'opera']
+    
+    if any(b in ua for b in browsers):
+        return "Unauthorized: Browser Access Blocked.", 403
 
-    # If it is a browser, block them so they can't steal the script
-    if is_browser:
-        return "Unauthorized: Source access is restricted to authorized executors.", 403
-
-    # If it's the Roblox executor, send the script
     return MY_LUASCRIPT, 200, {'Content-Type': 'text/plain'}
 
 if __name__ == '__main__':
-    # This is only used for local testing; Render uses the Start Command
-    port = int(os.environ.get("PORT", 10000))
+    # Render sets the PORT env variable automatically
+    port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
