@@ -1,12 +1,9 @@
 import os
-from flask import Flask, request, abort
+from flask import Flask, request
 
 app = Flask(__name__)
 
-# =========================================================
-# [[ THE SOSIX SCRIPT ]]
-# =========================================================
-# Put your full Lua script inside the triple quotes below.
+# THE SCRIPT (Your protected code)
 MY_LUASCRIPT = r"""
 --[[
               SOSIX HUB
@@ -378,27 +375,21 @@ end)
 """
 
 @app.route('/')
-def health_check():
-    # This is a simple endpoint for Render to verify the app is alive
-    return "Sonix Security: Online", 200
+def home():
+    # Render needs to see a 200 OK here to confirm the port is open
+    return "OK", 200
 
-@app.route('/Blocker', methods=['GET'])
-def load_script():
-    # Identify who is visiting the link
-    user_agent = request.headers.get('User-Agent', '').lower()
+@app.route('/Blocker')
+def load():
+    ua = request.headers.get('User-Agent', '').lower()
+    # If it's a browser, send a fake error
+    if any(x in ua for x in ['mozilla', 'chrome', 'safari', 'edge']):
+        return "Error 404: Not Found", 404
     
-    # List of common browser identifiers to block
-    browsers = ['mozilla', 'chrome', 'safari', 'edge', 'opera', 'mobile']
-    
-    # If a person is using a browser, block them so they can't see/steal your code
-    if any(b in user_agent for b in browsers):
-        return "Unauthorized: Source access restricted to authorized executors.", 403
+    # If it's the executor, send the goods
+    return MY_LUASCRIPT
 
-    # If it's an executor (like Solara, Wave, etc.), send the script
-    return MY_LUASCRIPT, 200, {'Content-Type': 'text/plain'}
-
-# This block is kept for local testing, but Render will ignore it 
-# once you use the Gunicorn start command.
 if __name__ == '__main__':
+    # We use 10000 because that is Render's favorite default port
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
